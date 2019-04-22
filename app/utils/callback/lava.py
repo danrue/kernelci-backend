@@ -12,6 +12,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import codecs
+import dateutil
 import errno
 import models
 import os
@@ -44,6 +45,7 @@ LAVA_JOB_RESULT = {
 TEST_CASE_MAP = {
     models.NAME_KEY: "name",
     models.STATUS_KEY: "result",
+    models.INDEX_KEY: "logged",
 }
 
 TEST_CASE_NAME_EXTRA = {
@@ -438,6 +440,11 @@ def _add_test_results(group, suite_results, suite_name):
             models.TIME_KEY: "0.0",
         }
         test_case.update({k: test[v] for k, v in TEST_CASE_MAP.iteritems()})
+        try:
+            test_case[models.INDEX_KEY] = dateutil.parser.parse(test_case[models.INDEX_KEY])
+        except ValueError:
+            utils.LOG.warn("Unexpected value for LAVA test case index: {}".format(test_case[models.INDEX_KEY]))
+
         test_meta = test["metadata"]
         if suite_name == "lava":
             _parse_lava_test_data(test_case, test_meta)
